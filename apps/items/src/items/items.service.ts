@@ -1,4 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CreateItemRequest } from './dto/create-item.request';
+import { Item } from './item.interface';
+import { CLIENTS } from '../clients/clients.constants';
+import { Clients } from '../clients/clients.interface';
 
 @Injectable()
-export class ItemsService {}
+export class ItemsService {
+  constructor(@Inject(CLIENTS) private readonly clients: Clients) {}
+
+  private readonly items = [];
+
+  async createItem(request: CreateItemRequest) {
+    const newItem: Item = {
+      ...request,
+      id: Math.random().toString(36).substring(2, 15),
+    };
+
+    const payment = await this.clients.paymentsClient.payments.getPayment.query(
+      {
+        id: newItem.id,
+      },
+    );
+
+    //use payment
+    console.log(payment);
+
+    this.items.push(newItem);
+    return newItem;
+  }
+}
